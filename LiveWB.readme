@@ -1,0 +1,22 @@
+LiveWB - Live Weather Background, is a bash script which fetches images from EUMETSAT and combines them using ImageMagick, in a nice arangement which is very easy to view as a desktop background.
+
+Installation:
+- Copy all files to $HOME/bin/LWB/ directory
+- Grand LiveWB execute permition
+- Run LiveWB
+
+May be needed:
+- Edit LiveWb.config to set your country
+  (if the discovered country is different from the one needed)
+- Check if the coresponding LWB/config/xx.config file exists for your country
+  (if not you have to create it; use template.config)
+
+----------------------------------------------------------------------
+If you want to make LiveWB to start when you logon,
+add the following three lines to the end of /home/<username>/.profile
+
+    if [ "$HOME/bin/LWB/LiveWB" ] ; then
+        $HOME/bin/LWB/LiveWB &
+    fi
+-----------------------------------------------------------------------
+

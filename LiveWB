@@ -1,0 +1,226 @@
+#!/bin/bash
+#
+# LiveWB (LiveWeatherBackground)
+# A Gnome3 script which creates a live weather wallpaper, using up to three combined images from EUMETSAT.
+# The images are refreshed only if: a user is logged on AND there is a newer image for download AND there are no maximized windows.  
+
+# Used tools: pgrep, convert, composite, xdotool, xprop, date, dig, whois, awk, 
+# The following code is divided to four sections: Atomicity, Functions, Initialization, Main loop.
+
+######## Atomicity start ########
+# KILL previous script processes.
+# This block must be in  the first lines of code to actually work, or else it will kill itself.
+# TO DO: replace this block with either flock and trap, or a starter script.
+name=( $( pgrep "LiveWB" ) ) 
+for (( i = 0 ; i < ${#name[@]} - 1 ; i++ )); do
+    kill -9 ${name[$i]}
+done
+######## Atomicity end ########
+
+####### Functions start ######## 
+
+# Gets an image from the web and stores it localy. Syntax: gi $getimage $storeimage
+function gi {
+	COUNTER=0
+	while [ $COUNTER -lt 3 ]; do 	# if can not get image, retry for (max COUNTER*sleepingtime) seconds (3*60=180sec=3min)
+		wget  -qO "$2.tmp" $1
+		temp=$(stat -c%s "$2.tmp")
+		if [[ $temp > 1000 ]] 	# if image is greater than 1000 bytes
+			then 	rm $2
+				mv "$2.tmp" $2 #image is refreshed
+				break
+		fi
+		sleep 60 		# if can not get image, retry after 60 seconds
+        	let COUNTER=COUNTER+1 
+	done
+}
+
+# Combines three images to one.
+function kolaz {
+	convert -size $DIMENSIONS xc:black "$STOREPATH/temp.png"
+	if [[ ! -z $GETIMAGE1 ]] ; then composite -geometry $POSITION1 "$STOREPATH/LiveWB1.jpg" "$STOREPATH/temp.png" "$STOREPATH/temp.png" ; fi
+	if [[ ! -z $GETIMAGE2 ]] ; then composite -geometry $POSITION2 "$STOREPATH/LiveWB2.jpg" "$STOREPATH/temp.png" "$STOREPATH/temp.png" ; fi
+	if [[ ! -z $GETIMAGE3 ]] ; then composite -geometry $POSITION3 "$STOREPATH/LiveWB3.jpg" "$STOREPATH/temp.png" "$STOREPATH/temp.png" ; fi
+	if [[ ! -z $LEGENDNAME && ! -z $LEGENDPOSITION && ! -f $INSTALLPATH/legend/$LEGENDNAME   ]] ; then
+		GETVAR="http://oiswww.eumetsat.org/IPPS/html/bin/bars/$LEGENDNAME"
+		wget -qO "$INSTALLPATH/legend/$LEGENDNAME" $GETVAR
+	fi
+	if [[ ! -z $LEGENDNAME && ! -z $LEGENDPOSITION && -f $INSTALLPATH/legend/$LEGENDNAME ]] ; then
+		composite -geometry $LEGENDPOSITION "$INSTALLPATH/legend/$LEGENDNAME" "$STOREPATH/temp.png" "$STOREPATH/temp.png"
+	fi
+	SECS=$(date +%s)
+	NEXTUPDATE=$(date '+%T' --date="@$(($SECS + $UPDATE))")
+	MYTEXT="LiveWB - LiveWeatherBackground\n@github.com/skarmoutsosv\n\nCurrent image created at $(date +%R)\nusing Bash, ImageMagick\nand $AREA.config settings.\nNext update at $NEXTUPDATE"
+	if [[ -z $INFOPLACE ]] ; then INFOPLACE="south" ; fi
+	case "$INFOPLACE" in
+		"north" | "south") TEXTCOORDS="+0+50" ;;
+		"west" | "east") TEXTCOORDS="+50+0" ;;
+		"northwest" | "northeast" | "southwest" | "southeast") TEXTCOORDS="+50+50" ;;
+		*) INFOPLACE="south" ; TEXTCOORDS="+0+50" ;;
+	esac
+	convert "$STOREPATH/temp.png" -gravity $INFOPLACE \
+	   -stroke '#000F' -strokewidth 3 -annotate $TEXTCOORDS "$MYTEXT" \
+	   -stroke  none   -fill white  -annotate $TEXTCOORDS "$MYTEXT" \
+	   $STOREIMAGE
+	rm "$STOREPATH/temp.png"
+}
+
+function setloopvars {
+	if [[ $GETIMAGE1 == *"MSG_CLA"* ]] 
+	then
+	  UPDATE1=10800 # Update every 3h. Image url contains CLA.
+	else
+	  if [[ $GETIMAGE1 == *"MSG_RGB"* || $GETIMAGE1 == *"MSG_IR"* || $GETIMAGE1 == *"MSG_VIS"* || $GETIMAGE1 == *"MSG_WV"* ]]
+	  then
+	    UPDATE1=3600 # Update every 1h. Image url contains RGB, IR, VIS or WV.
+	  else
+	    if [[ $GETIMAGE1 == *"MSG_MPE"* || $GETIMAGE1 == *"MSG_FIR"* || $GETIMAGE1 == *"MSG_CLM"* || $GETIMAGE1 == *"MSG_CTH"* ]]
+	    then UPDATE1=900 # Update every 15min. Image url contains MPE, FIR, CLM or CTH.
+	    fi
+	  fi
+	fi
+
+	if [[ $GETIMAGE2 == *"MSG_CLA"* ]] 
+	then
+	  UPDATE2=10800 # Update every 3h. Image url contains CLA.
+	else
+	  if [[ $GETIMAGE2 == *"MSG_RGB"* || $GETIMAGE2 == *"MSG_IR"* || $GETIMAGE2 == *"MSG_VIS"* || $GETIMAGE2 == *"MSG_WV"* ]]
+	  then
+	    UPDATE2=3600 # Update every 1h. Image url contains RGB, IR, VIS or WV.
+	  else
+	    if [[ $GETIMAGE2 == *"MSG_MPE"* || $GETIMAGE2 == *"MSG_FIR"* || $GETIMAGE2 == *"MSG_CLM"* || $GETIMAGE2 == *"MSG_CTH"* ]]
+	    then UPDATE2=900 # Update every 15min. Image url contains MPE, FIR, CLM or CTH.
+	    fi
+	  fi
+	fi
+
+	if [[ $GETIMAGE3 == *"MSG_CLA"* ]] 
+	then
+	  UPDATE3=10800 # Update every 3h. Image url contains CLA.
+	else
+	  if [[ $GETIMAGE3 == *"MSG_RGB"* || $GETIMAGE3 == *"MSG_IR"* || $GETIMAGE3 == *"MSG_VIS"* || $GETIMAGE3 == *"MSG_WV"* ]]
+	  then
+	    UPDATE3=3600 # Update every 1h. Image url contains RGB, IR, VIS or WV.
+	  else
+	    if [[ $GETIMAGE3 == *"MSG_MPE"* || $GETIMAGE3 == *"MSG_FIR"* || $GETIMAGE3 == *"MSG_CLM"* || $GETIMAGE3 == *"MSG_CTH"* ]]
+	    then UPDATE3=900 # Update every 15min. Image url contains MPE, FIR, CLM or CTH.
+	    fi
+	  fi
+	fi
+}
+
+# Example: getnewimage $GETIMAGE1 $UPDATE1 "LiveWB1.jpg"
+function getnewimage {
+    currentUTChour=$(date -u +%H)
+    currentmin=$(date +%M)
+    # images which update each hour (at zero minutes), are available at the web after 29 minutes at most (tested at November 2015)
+    # images which update every three hours, are available at the web after ? minutes. (not tested, the same minutes as hourly was set)
+    if [[ ! -z $1 && $2="900" ]] 
+	then
+	gi $1 "$STOREPATH/$3" 
+	STITCH=1
+    fi
+    if [[ ! -z $1 && $2="3600" ]] ; then 
+	if [[ $currentmin -ge 30 && $currentmin -le 44 ]] ;
+	  then
+	  gi $1 "$STOREPATH/$3" 
+	  STITCH=1 
+	fi
+    fi
+    if [[ ! -z $1 && $2="10800" ]] ; then 
+	if [[ $(($currentUTChour % 3)) -eq 0 && $currentmin -ge 30 && $currentmin -le 44 ]]
+	  then
+	  gi $1 "$STOREPATH/$3" 
+	  STITCH=1 
+	fi
+    fi
+}
+
+function updateimages {
+	if [[ ! -z $GETIMAGE1 ]] ; then gi $GETIMAGE1 "$STOREPATH/LiveWB1.jpg" ; fi # If variable is not empty, get image.
+	if [[ ! -z $GETIMAGE2 ]] ; then gi $GETIMAGE2 "$STOREPATH/LiveWB2.jpg" ; fi
+	if [[ ! -z $GETIMAGE3 ]] ; then gi $GETIMAGE3 "$STOREPATH/LiveWB3.jpg" ; fi
+}
+
+function wait_until_none_maximized {
+    while true ; do
+	# Find all visible window ids
+	wids=$(xdotool search -onlyvisible --name "")
+	# Find if anyone of the windows is maximized
+	FOUND="no"
+	for wid in $wids ; do
+		STATE=$(xprop -id $wid _NET_WM_STATE)
+		# If the variable contains both the strings 
+		if [[ $STATE == *"_NET_WM_STATE_MAXIMIZED_HORZ"* &&  $STATE == *"_NET_WM_STATE_MAXIMIZED_VERT"* ]]
+		then
+		  FOUND="yes"
+		  break
+		fi
+	done
+	if [[ $FOUND == "yes" ]] ; then
+	  # The following delay should be 1 second, but the image refreshes only after few minutes for unknown reasons.
+	  # (When the last maximized window is closed, the background should update almost immediatly, if it is needed)
+	  sleep 60 # Delay re-check for maximized window. 
+	else
+	  return # If there is none maximized window, exit function.
+	fi
+    done
+}
+######## Functions end ########
+
+######## Initialization start ########
+
+INSTALLPATH="$HOME/bin/LWB" # without trailing slash "/".
+
+# Get main configuration variables
+source $INSTALLPATH/LiveWB.config
+
+# Country discover
+if [[ $AUTOAREA == "yes" ]]
+then
+  EXTIPADDR=$(dig +short myip.opendns.com @resolver1.opendns.com)
+  COUNTRY=$(whois $EXTIPADDR | awk -F':[ \t]+' 'tolower($1) ~ /^country$/ { print tolower($2) }')
+fi
+
+# Country selection
+# If AUTOAREA="yes", and COUNTRY is not empty, and the correct config file exists
+if [[ $AUTOAREA == "yes" &&  ! -z $COUNTRY && -f $INSTALLPATH/config/$COUNTRY.config ]]
+then
+  # Get variables for the discovered country.
+  source $INSTALLPATH/config/$COUNTRY.config
+else
+  # Get variables for the manually selected country or area.
+  source $INSTALLPATH/config/$AREA.config
+fi
+
+# Number of seconds between updates (900s=15min, 3600s=1h, 10800s=3h)
+# LiveWB update logic conforms to EUMETSAT's update frequency policy.
+UPDATE="900" # Do not change this. The update logic relies to multiples of 15 minutes.
+
+# Set the background image using dconf key (for GNOME 3).
+gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
+setloopvars
+updateimages # First time unconditional fetch images
+kolaz # Composition creation
+sleep $UPDATE
+wait_until_none_maximized
+######## Initialization end ########
+
+######## Main loop start ######## 
+# Runs every 15minutes and updates images depending of each one's specific UPDATEx value.
+# If there is one or more maximized windows, it waits and re-checks every second.
+while [ 1 ]; do
+	STITCH=0
+	getnewimage $GETIMAGE1 $UPDATE1 "LiveWB1.jpg"
+	getnewimage $GETIMAGE2 $UPDATE2 "LiveWB2.jpg"
+	getnewimage $GETIMAGE3 $UPDATE3 "LiveWB3.jpg"
+	if [[ $STITCH ]] ; then
+	    kolaz
+	    STITCH=0
+	fi
+
+	sleep $UPDATE
+	wait_until_none_maximized
+done
+######## Main loop end ########
+
