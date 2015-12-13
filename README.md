@@ -1,16 +1,17 @@
 # LiveWB
-A smart <b>Live Weather Background</b> bash application.
+A smart <b>Live Weather Background</b> auto changer.
 
 *LiveWB - Live Weather Background*, is a bash script which fetches images from EUMETSAT and combines them using ImageMagick,
-in a nice arangement which is very easy to view as a desktop background.
+in a nice arangement which is very pleasant to view as a desktop background.
 
-Watching the sattelite images of a large area makes a user to learn more about weather and soon 
-to be able to predict the weather for the next day, just by watching LiveWB images.
+By watching regularly LiveWB composite sattelite images, a viewer may observe more details about weather and soon 
+to be able make a prediction for the next day.
 
 LiveWB creates a composite image from up to three  almost real time satelite weather images,
 and updates Gnome3 background, when it is needed.
 
 Images from EUMETSAT's website cover Europe, Africa, part of Asia and part of south America.
+There are many types showing rain, fog, wind, probability of fire, cloud coverage, etc.
 
 LiveWB do it's best to be autoconfigured and at the same time to respect local and remote resources.
 
@@ -28,5 +29,5 @@ Custom configuration files may be created easily with the following parameters:<
 - Legend type</br>
 - Legend position
 
-For more info about custom .config files, please have a look at template.config file.
+You can read more info about creating custom .config files at 'template.config'.
 
