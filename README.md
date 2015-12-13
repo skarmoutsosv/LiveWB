@@ -2,7 +2,7 @@
 A smart <b>Live Weather Background</b> auto changer.
 
 *LiveWB - Live Weather Background*, is a bash script which fetches images from EUMETSAT and combines them using ImageMagick,
-in a nice arangement which is very pleasant to view as a desktop background.
+in a nice arangement which is very informative as a desktop background.
 
 By watching regularly LiveWB composite sattelite images, a viewer may observe more details about weather and soon 
 to be able make a prediction for the next day.
