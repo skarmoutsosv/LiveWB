@@ -18,8 +18,7 @@ LiveWB do it's best to be autoconfigured and at the same time to respect local a
 Autoconfiguration includes: country discovery, update interval recognition,  maximized window recognition.
 
 This means that without any configuration, a user will have as background a composite image which will be specifically
-made for his country, and this composite image will update only if there is a newer image upstream and
-at the same time there is none maximized window.
+made for his country, and this composite image will update only if there will be a newer image upstream and there is none maximized window.
 
 Custom configuration files may be created easily with the following parameters:</br>
 - Composite image dimensions</br>
@@ -31,3 +30,8 @@ Custom configuration files may be created easily with the following parameters:<
 
 You can read more info about creating custom .config files at 'template.config'.
 
+LiveWB is developed and tested on my Debian GNU/Linux testing (stretch) system, and is running without any problem.
+However, the script needs more eyes for code optimization, so, any contribution is wellcome.
+
+Have nice forecasts,<br>
+Vangelis Skarmoutsos
