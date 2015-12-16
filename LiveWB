@@ -3,6 +3,8 @@
 # LiveWB (LiveWeatherBackground)
 # A Gnome3 script which creates a live weather wallpaper, using up to three combined images from EUMETSAT.
 # The images are refreshed only if: a user is logged on AND there is a newer image for download AND there are no maximized windows.  
+# Author: Vangelis Skarmoutsos <skarmoutsosv@gmail.com>, 2015
+# License: GNU GPL v3
 
 # Used tools: pgrep, convert, composite, xdotool, xprop, date, dig, whois, awk, 
 # The following code is divided to four sections: Atomicity, Functions, Initialization, Main loop.
@@ -18,6 +20,15 @@ done
 ######## Atomicity end ########
 
 ####### Functions start ######## 
+
+# TO DO: Get screen resolution in order to select the correct config file.
+# It should be implemented if there are config files with different resolutions, for the same area.
+# Or to prevent running, if current resolution is lower than the configured in .config file
+#function getscreenresolution {
+#SCRH=$(xrandr | awk '/current/ { print $8 }')
+#SCRW=$(xrandr | awk '/current/ { print $10 }')
+#SCRW=${SCRW%\,}	 # removes trailing comma (,)
+#}
 
 # Gets an image from the web and stores it localy. Syntax: gi $getimage $storeimage
 function gi {
@@ -66,47 +77,24 @@ function kolaz {
 }
 
 function setloopvars {
-	if [[ $GETIMAGE1 == *"MSG_CLA"* ]] 
-	then
-	  UPDATE1=10800 # Update every 3h. Image url contains CLA.
-	else
-	  if [[ $GETIMAGE1 == *"MSG_RGB"* || $GETIMAGE1 == *"MSG_IR"* || $GETIMAGE1 == *"MSG_VIS"* || $GETIMAGE1 == *"MSG_WV"* ]]
-	  then
-	    UPDATE1=3600 # Update every 1h. Image url contains RGB, IR, VIS or WV.
-	  else
-	    if [[ $GETIMAGE1 == *"MSG_MPE"* || $GETIMAGE1 == *"MSG_FIR"* || $GETIMAGE1 == *"MSG_CLM"* || $GETIMAGE1 == *"MSG_CTH"* ]]
-	    then UPDATE1=900 # Update every 15min. Image url contains MPE, FIR, CLM or CTH.
-	    fi
-	  fi
-	fi
+	set_update_vars $GETIMAGE1 "UPDATE1"
+	set_update_vars $GETIMAGE2 "UPDATE2"
+	set_update_vars $GETIMAGE3 "UPDATE3"
+}
 
-	if [[ $GETIMAGE2 == *"MSG_CLA"* ]] 
-	then
-	  UPDATE2=10800 # Update every 3h. Image url contains CLA.
-	else
-	  if [[ $GETIMAGE2 == *"MSG_RGB"* || $GETIMAGE2 == *"MSG_IR"* || $GETIMAGE2 == *"MSG_VIS"* || $GETIMAGE2 == *"MSG_WV"* ]]
-	  then
-	    UPDATE2=3600 # Update every 1h. Image url contains RGB, IR, VIS or WV.
-	  else
-	    if [[ $GETIMAGE2 == *"MSG_MPE"* || $GETIMAGE2 == *"MSG_FIR"* || $GETIMAGE2 == *"MSG_CLM"* || $GETIMAGE2 == *"MSG_CTH"* ]]
-	    then UPDATE2=900 # Update every 15min. Image url contains MPE, FIR, CLM or CTH.
-	    fi
-	  fi
+function set_update_vars {
+	if [[ $1 == *"MSG_MPE"* || $1 == *"MSG_FIR"* || $1 == *"MSG_CLM"* || $1 == *"MSG_CTH"* ]] ; then
+		set_update=900 ; # Update every 15min. Image url contains MPE, FIR, CLM or CTH.
+	elif [[ $1 == *"MSG_RGB"* || $1 == *"MSG_IR"* || $1 == *"MSG_VIS"* || $1 == *"MSG_WV"* ]] ; then
+		set_update=3600 ; # Update every 1h. Image url contains RGB, IR, VIS or WV.
+	elif [[ $1 == *"MSG_CLA"* ]] ; then
+		set_update=10800 # Update every 3h. Image url contains CLA.
 	fi
-
-	if [[ $GETIMAGE3 == *"MSG_CLA"* ]] 
-	then
-	  UPDATE3=10800 # Update every 3h. Image url contains CLA.
-	else
-	  if [[ $GETIMAGE3 == *"MSG_RGB"* || $GETIMAGE3 == *"MSG_IR"* || $GETIMAGE3 == *"MSG_VIS"* || $GETIMAGE3 == *"MSG_WV"* ]]
-	  then
-	    UPDATE3=3600 # Update every 1h. Image url contains RGB, IR, VIS or WV.
-	  else
-	    if [[ $GETIMAGE3 == *"MSG_MPE"* || $GETIMAGE3 == *"MSG_FIR"* || $GETIMAGE3 == *"MSG_CLM"* || $GETIMAGE3 == *"MSG_CTH"* ]]
-	    then UPDATE3=900 # Update every 15min. Image url contains MPE, FIR, CLM or CTH.
-	    fi
-	  fi
-	fi
+	case $2 in
+	  "UPDATE1") UPDATE1=$set_update ;;
+	  "UPDATE2") UPDATE2=$set_update ;;
+	  "UPDATE3") UPDATE3=$set_update ;;
+	esac
 }
 
 # Example: getnewimage $GETIMAGE1 $UPDATE1 "LiveWB1.jpg"
@@ -137,15 +125,16 @@ function getnewimage {
 }
 
 function updateimages {
+# This function is used only at initialization.
 	if [[ ! -z $GETIMAGE1 ]] ; then gi $GETIMAGE1 "$STOREPATH/LiveWB1.jpg" ; fi # If variable is not empty, get image.
 	if [[ ! -z $GETIMAGE2 ]] ; then gi $GETIMAGE2 "$STOREPATH/LiveWB2.jpg" ; fi
 	if [[ ! -z $GETIMAGE3 ]] ; then gi $GETIMAGE3 "$STOREPATH/LiveWB3.jpg" ; fi
 }
 
-function wait_until_none_maximized {
+function waitnomax {
     while true ; do
 	# Find all visible window ids
-	wids=$(xdotool search -onlyvisible --name "")
+	wids=$(xdotool search -onlyvisible -name "")
 	# Find if anyone of the windows is maximized
 	FOUND="no"
 	for wid in $wids ; do
@@ -158,9 +147,9 @@ function wait_until_none_maximized {
 		fi
 	done
 	if [[ $FOUND == "yes" ]] ; then
-	  # The following delay should be 1 second, but the image refreshes only after few minutes for unknown reasons.
-	  # (When the last maximized window is closed, the background should update almost immediatly, if it is needed)
-	  sleep 60 # Delay re-check for maximized window. 
+	  # When the last maximized window is closed, the background should update almost immediatly, if it is needed.
+	  # The following delay should be 2 seconds (or whatever feels right).
+	  sleep 2 # Delay re-check for maximized window. 
 	else
 	  return # If there is none maximized window, exit function.
 	fi
@@ -195,7 +184,7 @@ fi
 
 # Number of seconds between updates (900s=15min, 3600s=1h, 10800s=3h)
 # LiveWB update logic conforms to EUMETSAT's update frequency policy.
-UPDATE="900" # Do not change this. The update logic relies to multiples of 15 minutes.
+UPDATE=900 #  Do not change this to "900". The update logic relies to multiples of 15 minutes.
 
 # Set the background image using dconf key (for GNOME 3).
 gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
@@ -203,24 +192,24 @@ setloopvars
 updateimages # First time unconditional fetch images
 kolaz # Composition creation
 sleep $UPDATE
-wait_until_none_maximized
+if [[ $DETECTMAXIMIZED == "yes" ]] ; then waitnomax ; fi
 ######## Initialization end ########
 
 ######## Main loop start ######## 
 # Runs every 15minutes and updates images depending of each one's specific UPDATEx value.
 # If there is one or more maximized windows, it waits and re-checks every second.
-while [ 1 ]; do
+while true ; do
 	STITCH=0
-	getnewimage $GETIMAGE1 $UPDATE1 "LiveWB1.jpg"
-	getnewimage $GETIMAGE2 $UPDATE2 "LiveWB2.jpg"
-	getnewimage $GETIMAGE3 $UPDATE3 "LiveWB3.jpg"
-	if [[ $STITCH ]] ; then
+	if [[ ! -z $GETIMAGE1 ]] ; then getnewimage $GETIMAGE1 $UPDATE1 "LiveWB1.jpg" ; fi
+	if [[ ! -z $GETIMAGE2 ]] ; then getnewimage $GETIMAGE2 $UPDATE2 "LiveWB2.jpg" ; fi
+	if [[ ! -z $GETIMAGE3 ]] ; then getnewimage $GETIMAGE3 $UPDATE3 "LiveWB3.jpg" ; fi
+	if [ $STITCH -eq 1 ] ; then
 	    kolaz
 	    STITCH=0
 	fi
 
 	sleep $UPDATE
-	wait_until_none_maximized
+	if [[ $DETECTMAXIMIZED == "yes" ]] ; then waitnomax ; fi
 done
 ######## Main loop end ########
 
