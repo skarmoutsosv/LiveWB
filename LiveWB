@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# LiveWB (LiveWeatherBackground)
+# LiveWB (Live Weather Background)
 # A Gnome3 script which creates a live weather wallpaper, using up to three combined images from EUMETSAT.
 # The images are refreshed only if: a user is logged on AND there is a newer image for download AND there are no maximized windows.  
 # Author: Vangelis Skarmoutsos <skarmoutsosv@gmail.com>, 2015
@@ -20,9 +20,8 @@ done
 ######## Atomicity end ########
 
 ####### Functions start ######## 
-
 # TO DO: Get screen resolution in order to select the correct config file.
-# It should be implemented if there are config files with different resolutions, for the same area.
+# It should be implemented if there are config files for the same area, with different resolutions.
 # Or to prevent running, if current resolution is lower than the configured in .config file
 #function getscreenresolution {
 #SCRH=$(xrandr | awk '/current/ { print $8 }')
@@ -158,7 +157,6 @@ function waitnomax {
 ######## Functions end ########
 
 ######## Initialization start ########
-
 INSTALLPATH="$HOME/bin/LWB" # without trailing slash "/".
 
 # Get main configuration variables
@@ -188,7 +186,7 @@ UPDATE=900 #  Do not change this to "900". The update logic relies to multiples 
 
 # Set the background image using dconf key (for GNOME 3).
 gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
-setloopvars
+setloopvars # Calculates the delay values (UPDATE1, UPDATE2, UPDATE3) for each of the images
 updateimages # First time unconditional fetch images
 kolaz # Composition creation
 sleep $UPDATE

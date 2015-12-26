@@ -30,8 +30,8 @@ Custom configuration files may be created easily with the following parameters:<
 
 You can read more info about creating custom .config files at 'template.config'.
 
-LiveWB is developed and tested on my Debian GNU/Linux testing (stretch) system, and is running without any problem.
-However, the script needs more eyes for code optimization, so, any contribution is wellcome.
+LiveWB is developed and tested on Debian GNU/Linux testing (stretch) system, and is running daily, providing weather info.
+However, the script needs more expert eyes for code optimization, so, any contribution is wellcome.
 
 Have nice forecasts,<br>
 Vangelis Skarmoutsos
