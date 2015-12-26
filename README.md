@@ -34,4 +34,4 @@ LiveWB is developed and tested on Debian GNU/Linux testing (stretch) system, and
 However, the script needs more expert eyes for code optimization, so, any contribution is wellcome.
 
 Have nice forecasts,<br>
-Vangelis Skarmoutsos.
+Vangelis Skarmoutsos
