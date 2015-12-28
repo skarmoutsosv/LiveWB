@@ -60,7 +60,7 @@ function kolaz {
 	fi
 	SECS=$(date +%s)
 	NEXTUPDATE=$(date '+%T' --date="@$(($SECS + $UPDATE))")
-	MYTEXT="LiveWB - LiveWeatherBackground\n@github.com/skarmoutsosv\n\nCurrent image created at $(date +%R)\nusing Bash, ImageMagick\nand $AREA.config settings.\nNext update at $NEXTUPDATE"
+	MYTEXT="LiveWB - LiveWeatherBackground\n@github.com/skarmoutsosv\n\nCurrent image created at $(date +%R)\nusing Bash, ImageMagick\nand $MYTEXTCOUNTRYAREA.config settings.\nNext update at $NEXTUPDATE"
 	if [[ -z $INFOPLACE ]] ; then INFOPLACE="south" ; fi
 	case "$INFOPLACE" in
 		"north" | "south") TEXTCOORDS="+0+50" ;;
@@ -175,9 +175,11 @@ if [[ $AUTOAREA == "yes" &&  ! -z $COUNTRY && -f $INSTALLPATH/config/$COUNTRY.co
 then
   # Get variables for the discovered country.
   source $INSTALLPATH/config/$COUNTRY.config
+  MYTEXTCOUNTRYAREA=$COUNTRY
 else
   # Get variables for the manually selected country or area.
   source $INSTALLPATH/config/$AREA.config
+  MYTEXTCOUNTRYAREA=$AREA
 fi
 
 # Number of seconds between updates (900s=15min, 3600s=1h, 10800s=3h)
