@@ -102,19 +102,19 @@ function getnewimage {
     currentmin=$(date +%M)
     # images which update each hour (at zero minutes), are available at the web after 29 minutes at most (tested at November 2015)
     # images which update every three hours, are available at the web after ? minutes. (not tested, the same minutes as hourly was set)
-    if [[ ! -z $1 && $2="900" ]] 
+    if [[ ! -z $1 && $2 = "900" ]] 
 	then
 	gi $1 "$STOREPATH/$3" 
 	STITCH=1
     fi
-    if [[ ! -z $1 && $2="3600" ]] ; then 
+    if [[ ! -z $1 && $2 = "3600" ]] ; then 
 	if [[ $currentmin -ge 30 && $currentmin -le 44 ]] ;
 	  then
 	  gi $1 "$STOREPATH/$3" 
 	  STITCH=1 
 	fi
     fi
-    if [[ ! -z $1 && $2="10800" ]] ; then 
+    if [[ ! -z $1 && $2 = "10800" ]] ; then 
 	if [[ $(($currentUTChour % 3)) -eq 0 && $currentmin -ge 30 && $currentmin -le 44 ]]
 	  then
 	  gi $1 "$STOREPATH/$3" 
