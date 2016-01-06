@@ -29,6 +29,14 @@ done
 #SCRW=${SCRW%\,}	 # removes trailing comma (,)
 #}
 
+
+# Writes a message to LiveWB.log file.
+# Example: log "new composition created"
+function log {
+	LOGSTR=$(date +%F" "%T)
+	echo "$LOGSTR $1" >> $INSTALLPATH/LiveWB.log
+}
+
 # Gets an image from the web and stores it localy. Syntax: gi $getimage $storeimage
 function gi {
 	COUNTER=0
@@ -38,6 +46,11 @@ function gi {
 		if [[ $temp > 1000 ]] 	# if image is greater than 1000 bytes
 			then 	rm $2
 				mv "$2.tmp" $2 #image is refreshed
+				if [[ $LOGGING == "yes" ]]
+				then
+					log "Image fetched from $1"
+					log " and is saved as $2."
+				fi
 				break
 		fi
 		sleep 60 		# if can not get image, retry after 60 seconds
@@ -72,6 +85,8 @@ function kolaz {
 	   -stroke '#000F' -strokewidth 3 -annotate $TEXTCOORDS "$MYTEXT" \
 	   -stroke  none   -fill white  -annotate $TEXTCOORDS "$MYTEXT" \
 	   $STOREIMAGE
+	if [[ $LOGGING == "yes" ]]
+	then log "A new composition image created at $STOREIMAGE" ; fi
 	rm "$STOREPATH/temp.png"
 }
 
@@ -181,6 +196,9 @@ else
   source $INSTALLPATH/config/$AREA.config
   MYTEXTCOUNTRYAREA=$AREA
 fi
+
+if [[ $LOGGING == "yes" ]]
+then log "LiveWB started. Using $MYTEXTCOUNTRYAREA.config settings." ; fi
 
 # Number of seconds between updates (900s=15min, 3600s=1h, 10800s=3h)
 # LiveWB update logic conforms to EUMETSAT's update frequency policy.

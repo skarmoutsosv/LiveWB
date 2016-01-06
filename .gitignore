@@ -1,3 +1,7 @@
-# Do not include .jpg legend files when pushing to remote server (github.com)
+# Do not include unnesesary files when pushing to remote server (github.com)
+
+# Legend files are downloaded on demand, if needed.
 legend/*.jpg
 
+# Log file will be created if the configuration defines it.
+LiveWB.log
