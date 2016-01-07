@@ -33,7 +33,7 @@ done
 # Writes a message to LiveWB.log file.
 # Example: log "new composition created"
 function log {
-	LOGSTR=$(date +%F" "%T)
+	LOGSTR=$(date +%F" "%T.%N)
 	echo "$LOGSTR $1" >> $INSTALLPATH/LiveWB.log
 }
 
@@ -43,13 +43,13 @@ function gi {
 	while [ $COUNTER -lt 3 ]; do 	# if can not get image, retry for (max COUNTER*sleepingtime) seconds (3*60=180sec=3min)
 		wget  -qO "$2.tmp" $1
 		temp=$(stat -c%s "$2.tmp")
-		if [[ $temp > 1000 ]] 	# if image is greater than 1000 bytes
+		if (( temp > 1000 )) 	# if image is greater than 1000 bytes
 			then 	rm $2
 				mv "$2.tmp" $2 #image is refreshed
 				if [[ $LOGGING == "yes" ]]
 				then
 					log "Image fetched from $1"
-					log " and is saved as $2."
+					log " and is saved as $2"
 				fi
 				break
 		fi
@@ -72,7 +72,7 @@ function kolaz {
 		composite -geometry $LEGENDPOSITION "$INSTALLPATH/legend/$LEGENDNAME" "$STOREPATH/temp.png" "$STOREPATH/temp.png"
 	fi
 	SECS=$(date +%s)
-	NEXTUPDATE=$(date '+%T' --date="@$(($SECS + $UPDATE))")
+	NEXTUPDATE=$(date '+%T' --date="@$((SECS + UPDATE))")
 	MYTEXT="LiveWB - LiveWeatherBackground\n@github.com/skarmoutsosv\n\nCurrent image created at $(date +%R)\nusing Bash, ImageMagick\nand $MYTEXTCOUNTRYAREA.config settings.\nNext update at $NEXTUPDATE"
 	if [[ -z $INFOPLACE ]] ; then INFOPLACE="south" ; fi
 	case "$INFOPLACE" in
@@ -130,7 +130,7 @@ function getnewimage {
 	fi
     fi
     if [[ ! -z $1 && $2 = "10800" ]] ; then 
-	if [[ $(($currentUTChour % 3)) -eq 0 && $currentmin -ge 30 && $currentmin -le 44 ]]
+	if [[ $((currentUTChour % 3)) -eq 0 && $currentmin -ge 30 && $currentmin -le 44 ]]
 	  then
 	  gi $1 "$STOREPATH/$3" 
 	  STITCH=1 
