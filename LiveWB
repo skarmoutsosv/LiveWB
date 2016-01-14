@@ -88,6 +88,10 @@ function kolaz {
 	if [[ $LOGGING == "yes" ]]
 	then log "A new composition image created at $STOREIMAGE" ; fi
 	rm "$STOREPATH/temp.png"
+
+	
+	## Added 2016-01-14 Osric Wilkinson
+	xfdesktop --reload
 }
 
 function setloopvars {
@@ -205,7 +209,14 @@ then log "LiveWB started. Using $MYTEXTCOUNTRYAREA.config settings." ; fi
 UPDATE=900 #  Do not change this to "900". The update logic relies to multiples of 15 minutes.
 
 # Set the background image using dconf key (for GNOME 3).
-gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
+#gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
+
+## Edit 2015-01-14 Osric Wilkinson
+# Based on http://stackoverflow.com/a/12045412/195833
+
+echo -e "# xfce backdrop list\n$STOREIMAGE" > $HOME/.config/xfce4/desktop/backdrop.list
+xfdesktop --reload
+
 setloopvars # Calculates the delay values (UPDATE1, UPDATE2, UPDATE3) for each of the images
 updateimages # First time unconditional fetch images
 kolaz # Composition creation
