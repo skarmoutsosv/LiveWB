@@ -6,5 +6,6 @@ legend/
 # Log file will be created if the configuration defines it.
 LiveWB.log
 
-
+# Backup files from Bluefish
+*.html~
 
