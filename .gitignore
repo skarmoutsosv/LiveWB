@@ -1,0 +1,10 @@
+# Do not include unnesesary files when pushing to remote server (github.com)
+
+# Legend files are downloaded on demand, if needed.
+legend/
+
+# Log file will be created if the configuration defines it.
+LiveWB.log
+
+
+
