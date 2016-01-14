@@ -37,3 +37,6 @@ However, the script needs more expert eyes for code optimization, so, any contri
 
 Have nice forecasts,<br>
 Vangelis Skarmoutsos
+
+## Example Live Image
+![Example Live Image](http://oiswww.eumetsat.org/IPPS/html/latestImages/EUMETSAT_MSG_MPE-westernEurope.jpg)
