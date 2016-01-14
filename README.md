@@ -1,3 +1,5 @@
+Project's website: http://skarmoutsosv.github.io/LiveWB/ (includes sample images).
+
 # LiveWB
 A smart <b>Live Weather Background</b> auto changer.
 
