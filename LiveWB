@@ -6,16 +6,16 @@
 # Author: Vangelis Skarmoutsos <skarmoutsosv@gmail.com>, 2015
 # License: GNU GPL v3
 
-# Used tools: pgrep, convert, composite, xdotool, xprop, date, dig, whois, awk, 
-# The following code is divided to four sections: Atomicity, Functions, Initialization, Main loop.
+# Used tools: pgrep, wget, stat, sleep, convert, composite, xdotool, xprop, date, dig, whois, gsettings, awk. 
+# The following code is divided into four sections: Atomicity, Functions, Initialization, Main loop.
 
 ######## Atomicity start ########
 # KILL previous script processes.
-# This block must be in  the first lines of code to actually work, or else it will kill itself.
+# This block must be in the first lines of code.
 # TO DO: replace this block with either flock and trap, or a starter script.
 name=( $( pgrep "LiveWB" ) ) 
 for (( i = 0 ; i < ${#name[@]} - 1 ; i++ )); do
-    kill -9 ${name[$i]}
+	if (( $$ != ${name[$i]} )) ; then  kill -9 ${name[$i]} ; fi
 done
 ######## Atomicity end ########
 
@@ -72,7 +72,7 @@ function kolaz {
 		composite -geometry $LEGENDPOSITION "$INSTALLPATH/legend/$LEGENDNAME" "$STOREPATH/temp.png" "$STOREPATH/temp.png"
 	fi
 	SECS=$(date +%s)
-	NEXTUPDATE=$(date '+%T' --date="@$((SECS + UPDATE))")
+	NEXTUPDATE=$(date '+%T' --date="@$((SECS + MINUPDATE))")
 	MYTEXT="LiveWB - LiveWeatherBackground\n@github.com/skarmoutsosv\n\nCurrent image created at $(date +%R)\nusing Bash, ImageMagick\nand $MYTEXTCOUNTRYAREA.config settings.\nNext update at $NEXTUPDATE"
 	if [[ -z $INFOPLACE ]] ; then INFOPLACE="south" ; fi
 	case "$INFOPLACE" in
@@ -99,15 +99,25 @@ function setloopvars {
 function set_update_vars {
 	if [[ $1 == *"MSG_MPE"* || $1 == *"MSG_FIR"* || $1 == *"MSG_CLM"* || $1 == *"MSG_CTH"* ]] ; then
 		set_update=900 ; # Update every 15min. Image url contains MPE, FIR, CLM or CTH.
+	elif [[ $1 == *"noaa"* ]] ; then
+		set_update=1800 ; # Update every 30min. Image url contains nooa (US GOES satellites)
 	elif [[ $1 == *"MSG_RGB"* || $1 == *"MSG_IR"* || $1 == *"MSG_VIS"* || $1 == *"MSG_WV"* ]] ; then
 		set_update=3600 ; # Update every 1h. Image url contains RGB, IR, VIS or WV.
 	elif [[ $1 == *"MSG_CLA"* ]] ; then
 		set_update=10800 # Update every 3h. Image url contains CLA.
 	fi
 	case $2 in
-	  "UPDATE1") UPDATE1=$set_update ;;
-	  "UPDATE2") UPDATE2=$set_update ;;
-	  "UPDATE3") UPDATE3=$set_update ;;
+	  "UPDATE1")
+		UPDATE1=$set_update
+		if (( UPDATE1 < MINUPDATE )) ; then MINUPDATE=$UPDATE1 ; fi
+		;;
+	  "UPDATE2")
+		UPDATE2=$set_update
+		if (( UPDATE2 < MINUPDATE )) ; then MINUPDATE=$UPDATE2 ; fi
+		;;
+	  "UPDATE3") UPDATE3=$set_update
+		if (( UPDATE3 < MINUPDATE )) ; then MINUPDATE=$UPDATE3 ; fi
+		;;
 	esac
 }
 
@@ -117,23 +127,38 @@ function getnewimage {
     currentmin=$(date +%M)
     # images which update each hour (at zero minutes), are available at the web after 29 minutes at most (tested at November 2015)
     # images which update every three hours, are available at the web after ? minutes. (not tested, the same minutes as hourly was set)
+    # GOES (US) images update every 30 minutes and are available about 10 minutes later.
     if [[ ! -z $1 && $2 = "900" ]] 
 	then
 	gi $1 "$STOREPATH/$3" 
 	STITCH=1
     fi
-    if [[ ! -z $1 && $2 = "3600" ]] ; then 
-	if [[ $currentmin -ge 30 && $currentmin -le 44 ]] ;
+    if [[ ! -z $1 && $2 = "1800" ]] ; then 
+	if [[ $currentmin -ge 15 && $currentmin -le 29 ]] || \
+	   [[ $currentmin -ge 45 && $currentmin -le 59  ]] || \
+	   (( WAITEDTOOLONG > 1800 )) ;
 	  then
 	  gi $1 "$STOREPATH/$3" 
-	  STITCH=1 
+	  STITCH=1
+	  WAITEDTOOLONG=0
+	fi
+    fi
+    if [[ ! -z $1 && $2 = "3600" ]] ; then 
+	if [[ $currentmin -ge 30 && $currentmin -le 44 ]] || \
+	   (( WAITEDTOOLONG > 3600 )) ;
+	  then
+	  gi $1 "$STOREPATH/$3" 
+	  STITCH=1
+	  WAITEDTOOLONG=0
 	fi
     fi
     if [[ ! -z $1 && $2 = "10800" ]] ; then 
-	if [[ $((currentUTChour % 3)) -eq 0 && $currentmin -ge 30 && $currentmin -le 44 ]]
+	if [[ $((currentUTChour % 3)) -eq 0 && $currentmin -ge 30 && $currentmin -le 44 ]] || \
+	   (( WAITEDTOOLONG > 10800 )) ;
 	  then
 	  gi $1 "$STOREPATH/$3" 
 	  STITCH=1 
+	  WAITEDTOOLONG=0
 	fi
     fi
 }
@@ -164,6 +189,7 @@ function waitnomax {
 	  # When the last maximized window is closed, the background should update almost immediatly, if it is needed.
 	  # The following delay should be 2 seconds (or whatever feels right).
 	  sleep 2 # Delay re-check for maximized window. 
+	  WAITEDTOOLONG=$((WAITEDTOOLONG+2))
 	else
 	  return # If there is none maximized window, exit function.
 	fi
@@ -203,6 +229,8 @@ then log "LiveWB started. Using $MYTEXTCOUNTRYAREA.config settings." ; fi
 # Number of seconds between updates (900s=15min, 3600s=1h, 10800s=3h)
 # LiveWB update logic conforms to EUMETSAT's update frequency policy.
 UPDATE=900 #  Do not change this to "900". The update logic relies to multiples of 15 minutes.
+MINUPDATE=10800 # Initialized with the maximum value. It is used later to store the minimum number among UPDATE1, UPDATE2 and UPDATE3.
+WAITEDTOOLONG=0 # Counts the number of seconds there is a maximized window.
 
 # Set the background image using dconf key (for GNOME 3).
 gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
