@@ -232,8 +232,13 @@ UPDATE=900 #  Do not change this to "900". The update logic relies to multiples 
 MINUPDATE=10800 # Initialized with the maximum value. It is used later to store the minimum number among UPDATE1, UPDATE2 and UPDATE3.
 WAITEDTOOLONG=0 # Counts the number of seconds there is a maximized window.
 
-# Set the background image using dconf key (for GNOME 3).
-gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
+# Set the background image using dconf key (for GNOME 3). We just set the file.
+# Gnome monitors the file and if it is changed, updates the background without our intervention.
+if [[ $XDG_CURRENT_DESKTOP == "GNOME" ]] ; then
+  gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
+fi
+# Additional commands for other desktop environments should be added above.
+
 setloopvars # Calculates the delay values (UPDATE1, UPDATE2, UPDATE3) for each of the images
 updateimages # First time unconditional fetch images
 kolaz # Composition creation
