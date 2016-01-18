@@ -10,7 +10,7 @@ By watching regularly LiveWB composite sattelite images, a viewer may observe mo
 to be able make a prediction for the next day.
 
 LiveWB creates a composite image from up to three  almost real time satelite weather images,
-and updates Gnome3 background, when it is needed.
+and updates background, when it is needed.
 
 Images from EUMETSAT's website cover Europe, Africa, part of Asia and part of south America.
 There are many types showing rain, fog, wind, probability of fire, cloud coverage, etc.
