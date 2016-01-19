@@ -99,10 +99,10 @@ function setloopvars {
 function set_update_vars {
 	if [[ $1 == *"MSG_MPE"* || $1 == *"MSG_FIR"* || $1 == *"MSG_CLM"* || $1 == *"MSG_CTH"* ]] ; then
 		set_update=900 ; # Update every 15min. Image url contains MPE, FIR, CLM or CTH.
-	elif [[ $1 == *"noaa"* ]] ; then
-		set_update=1800 ; # Update every 30min. Image url contains nooa (US GOES satellites)
-	elif [[ $1 == *"MSG_RGB"* || $1 == *"MSG_IR"* || $1 == *"MSG_VIS"* || $1 == *"MSG_WV"* ]] ; then
-		set_update=3600 ; # Update every 1h. Image url contains RGB, IR, VIS or WV.
+	elif [[ $1 == *"noaa"* || $1 == *"MTP_MPE"* ]] ; then
+		set_update=1800 ; # Update every 30min. Image url contains nooa (US GOES satellites) or MTP_MPE
+	elif [[ $1 == *"MSG_RGB"* || $1 == *"MSG_IR"* || $1 == *"MSG_VIS"* || $1 == *"MSG_WV"* || $1 == *"MTP_IR"*  || $1 == *"MTP_VIS"* || $1 == *"MTP_WV"* ]] ; then
+		set_update=3600 ; # Update every 1h. Image url contains RGB, IR, VIS or WV from Meteosat 0 degree or Meteosat IODC.
 	elif [[ $1 == *"MSG_CLA"* ]] ; then
 		set_update=10800 # Update every 3h. Image url contains CLA.
 	fi
@@ -115,7 +115,8 @@ function set_update_vars {
 		UPDATE2=$set_update
 		if (( UPDATE2 < MINUPDATE )) ; then MINUPDATE=$UPDATE2 ; fi
 		;;
-	  "UPDATE3") UPDATE3=$set_update
+	  "UPDATE3")
+		UPDATE3=$set_update
 		if (( UPDATE3 < MINUPDATE )) ; then MINUPDATE=$UPDATE3 ; fi
 		;;
 	esac
