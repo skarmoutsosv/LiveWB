@@ -1,0 +1,27 @@
+This is just a list which includes the currently prepared configuration files.
+LiveWB does not use this file. The list is here for human's eyes only.
+If you want support for a country or area, please create a github issue.
+
+gr	Greece
+de	Germany
+fr	France
+it	Italy
+es	Spain
+pt	Portugal
+uk	United Kingdom
+ir	Ireland
+cy	Cyprus
+europe	Europe
+eg	Egypt
+us	USA
+us1	USA alternative
+br	Brazil
+tr	Turkey
+in	India
+id	Indonesia
+ru	Russia
+kz	Kazakhstan (link to ru)
+uz	Uzbekistan (link to ru)
+tm	Turkmenistan (link to ru)
+kg	Kyrgyzstan (link to ru)
+tj	Tajikistan (link to ru)
