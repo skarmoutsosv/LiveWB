@@ -236,7 +236,11 @@ WAITEDTOOLONG=0 # Counts the number of seconds there is a maximized window.
 # Set the background image using dconf key (for GNOME 3). We just set the file.
 # Gnome monitors the file and if it is changed, updates the background without our intervention.
 if [[ $XDG_CURRENT_DESKTOP == "GNOME" ]] ; then
-  gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
+	gsettings set org.gnome.desktop.background picture-uri 'file://'$STOREIMAGE
+elif [[ $XDG_CURRENT_DESKTOP == "MATE" ]] ; then 
+	gsettings set org.mate.background picture-filename "$STOREIMAGE"
+elif [[ $XDG_CURRENT_DESKTOP == "Unity" ]] ; then 
+	gsettings set com.canonical.unity-greeter background "$STOREIMAGE"
 fi
 # Additional commands for other desktop environments should be added above.
 
