@@ -241,8 +241,11 @@ elif [[ $XDG_CURRENT_DESKTOP == "MATE" ]] ; then
 	gsettings set org.mate.background picture-filename "$STOREIMAGE"
 elif [[ $XDG_CURRENT_DESKTOP == "Unity" ]] ; then 
 	gsettings set com.canonical.unity-greeter background "$STOREIMAGE"
+elif [[ $XDG_CURRENT_DESKTOP == "XFCE" ]] ; then 
+	xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/image-path --set $STOREIMAGE
 fi
 # Additional commands for other desktop environments should be added above.
+# If your desktop is not above, please open an issue on project's github website.
 
 setloopvars # Calculates the delay values (UPDATE1, UPDATE2, UPDATE3) for each of the images
 updateimages # First time unconditional fetch images
