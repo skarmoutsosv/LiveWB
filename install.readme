@@ -2,7 +2,7 @@ LiveWB - Live Weather Background, is a bash script which fetches images from EUM
 
 Installation:
 - Copy all files to $HOME/bin/LWB/ directory
-- Grand LiveWB execute permition
+- Grant LiveWB execute permition
 - Run LiveWB
 
 May be needed:
