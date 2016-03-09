@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# stats
+# Statistics from file LiveWB.log
+
+logfile="LiveWB.log"
+
+if [ ! -f $logfile ];
+then
+ echo "Can not find $logfile"
+ exit
+fi
+
+echo
+fromdate=$(head -n1 $logfile)
+fromd=${fromdate:0:16}
+todate=$(tail -n1 $logfile)
+tod=${todate:0:16}
+daysdiff=$(( ($(date -d "$tod" +%s) - $(date -d "$fromd" +%s) )/(60*60*24) ))
+((daysdiff++))
+echo "$logfile statistics from $fromd to $tod ($daysdiff days)"
+echo "---------------------------------------------------------------"
+started=$(cut -f 1,2 -d ' ' --complement $logfile | grep started | wc -l)
+echo "LiveWB started "$started" times (avg. "$(($started/$daysdiff))"/day)."
+cut -f 1,2 -d ' ' --complement $logfile | grep started | sort | uniq -c | sort -rn
+echo "---------------------------------------------------------------"
+fetched=$(cut -f 1,2 -d ' ' --complement $logfile | grep fetched | wc -l)
+echo "Images fetched from Internet and saved localy: "$fetched" (avg. "$(($fetched/$daysdiff))"/day)."
+echo "---------------------------------------------------------------"
+composed=$(cut -f 1,2 -d ' ' --complement $logfile | grep composition | wc -l)
+echo "Created compositions: "$composed" (avg. "$(($composed/$daysdiff))"/day)."
+echo "---------------------------------------------------------------"
+
+read -p "Press any key to exit... " -n1 -s
+echo
+
