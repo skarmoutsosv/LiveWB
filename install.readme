@@ -1,4 +1,4 @@
-LiveWB - Live Weather Background, is a bash script which fetches images from EUMETSAT and combines them using ImageMagick, in a nice arangement which is very easy to view as a desktop background.
+LiveWB - Live Weather Background, is a bash script which fetches images from EUMETSAT or other providers, and combines them using ImageMagick, in a nice arangement which is very easy to view as a desktop background.
 
 Installation:
 - Copy all files to $HOME/bin/LWB/ directory
