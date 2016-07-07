@@ -61,9 +61,9 @@ function gi {
 # Combines three images to one.
 function kolaz {
 	convert -size $DIMENSIONS xc:black "$STOREPATH/temp.png"
-	if [[ ! -z $GETIMAGE1 ]] ; then composite -geometry $POSITION1 "$STOREPATH/LiveWB1.jpg" "$STOREPATH/temp.png" "$STOREPATH/temp.png" ; fi
-	if [[ ! -z $GETIMAGE2 ]] ; then composite -geometry $POSITION2 "$STOREPATH/LiveWB2.jpg" "$STOREPATH/temp.png" "$STOREPATH/temp.png" ; fi
-	if [[ ! -z $GETIMAGE3 ]] ; then composite -geometry $POSITION3 "$STOREPATH/LiveWB3.jpg" "$STOREPATH/temp.png" "$STOREPATH/temp.png" ; fi
+	if [[ ! -z $GETIMAGE1 ]] ; then composite -geometry $POSITION1 "$STOREPATH/LiveWB1" "$STOREPATH/temp.png" "$STOREPATH/temp.png" ; fi
+	if [[ ! -z $GETIMAGE2 ]] ; then composite -geometry $POSITION2 "$STOREPATH/LiveWB2" "$STOREPATH/temp.png" "$STOREPATH/temp.png" ; fi
+	if [[ ! -z $GETIMAGE3 ]] ; then composite -geometry $POSITION3 "$STOREPATH/LiveWB3" "$STOREPATH/temp.png" "$STOREPATH/temp.png" ; fi
 	if [[ ! -z $LEGENDNAME && ! -z $LEGENDPOSITION && ! -f $INSTALLPATH/legend/$LEGENDNAME   ]] ; then
 		GETVAR="http://oiswww.eumetsat.org/IPPS/html/bin/bars/$LEGENDNAME"
 		wget -qO "$INSTALLPATH/legend/$LEGENDNAME" $GETVAR
@@ -166,9 +166,9 @@ function getnewimage {
 
 function updateimages {
 # This function is used only at initialization.
-	if [[ ! -z $GETIMAGE1 ]] ; then gi $GETIMAGE1 "$STOREPATH/LiveWB1.jpg" ; fi # If variable is not empty, get image.
-	if [[ ! -z $GETIMAGE2 ]] ; then gi $GETIMAGE2 "$STOREPATH/LiveWB2.jpg" ; fi
-	if [[ ! -z $GETIMAGE3 ]] ; then gi $GETIMAGE3 "$STOREPATH/LiveWB3.jpg" ; fi
+	if [[ ! -z $GETIMAGE1 ]] ; then gi $GETIMAGE1 "$STOREPATH/LiveWB1" ; fi # If variable is not empty, get image.
+	if [[ ! -z $GETIMAGE2 ]] ; then gi $GETIMAGE2 "$STOREPATH/LiveWB2" ; fi
+	if [[ ! -z $GETIMAGE3 ]] ; then gi $GETIMAGE3 "$STOREPATH/LiveWB3" ; fi
 }
 
 function waitnomax {
@@ -259,9 +259,9 @@ if [[ $DETECTMAXIMIZED == "yes" ]] ; then waitnomax ; fi
 # If there is one or more maximized windows, it waits and re-checks every second.
 while true ; do
 	STITCH=0
-	if [[ ! -z $GETIMAGE1 ]] ; then getnewimage $GETIMAGE1 $UPDATE1 "LiveWB1.jpg" ; fi
-	if [[ ! -z $GETIMAGE2 ]] ; then getnewimage $GETIMAGE2 $UPDATE2 "LiveWB2.jpg" ; fi
-	if [[ ! -z $GETIMAGE3 ]] ; then getnewimage $GETIMAGE3 $UPDATE3 "LiveWB3.jpg" ; fi
+	if [[ ! -z $GETIMAGE1 ]] ; then getnewimage $GETIMAGE1 $UPDATE1 "LiveWB1" ; fi
+	if [[ ! -z $GETIMAGE2 ]] ; then getnewimage $GETIMAGE2 $UPDATE2 "LiveWB2" ; fi
+	if [[ ! -z $GETIMAGE3 ]] ; then getnewimage $GETIMAGE3 $UPDATE3 "LiveWB3" ; fi
 	if [ $STITCH -eq 1 ] ; then
 	    kolaz
 	    STITCH=0
