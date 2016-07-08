@@ -1,9 +1,11 @@
 #!/bin/bash
 #
 # LiveWB (Live Weather Background)
-# A Gnome3 script which creates a live weather wallpaper, using up to three combined images from EUMETSAT.
+# A script which creates a live weather wallpaper, using up to three combined images from EUMETSAT or other satellites.
 # The images are refreshed only if: a user is logged on AND there is a newer image for download AND there are no maximized windows.  
-# Author: Vangelis Skarmoutsos <skarmoutsosv@gmail.com>, 2015
+# Author: Vangelis Skarmoutsos <skarmoutsosv@gmail.com>, 2015, 2016
+# Web site: http://skarmoutsosv.github.io/LiveWB/
+# Development site: https://github.com/skarmoutsosv/LiveWB
 # License: GNU GPL v3
 
 # Used tools: pgrep, wget, stat, sleep, convert, composite, xdotool, xprop, date, dig, whois, gsettings, awk. 
